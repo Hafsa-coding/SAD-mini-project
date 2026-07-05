@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAD Mini Project</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- ════════════════════════════════════ LOGIN SCREEN ════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">UNIMY Sports</div>
+    <div class="login-sub">Club Management System</div>
+
+    <div class="role-tabs">
+      <div class="role-tab active" data-role="admin" onclick="selectLoginRole('admin')">Admin</div>
+      <div class="role-tab" data-role="coach" onclick="selectLoginRole('coach')">Coach</div>
+      <div class="role-tab" data-role="management" onclick="selectLoginRole('management')">Management</div>
+      <div class="role-tab" data-role="student" onclick="selectLoginRole('student')">Student</div>
+    </div>
+
+    <div class="login-error" id="login-error">Incorrect username or password.</div>
+
+    <div class="login-form">
+      <div class="form-group">
+        <label id="login-id-label">Username</label>
+        <input id="login-id" placeholder="e.g. admin">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input id="login-pass" type="password" placeholder="Password">
+      </div>
+      <div class="login-hint" id="login-hint">Try: admin / admin123</div>
+      <button class="btn btn-primary btn-login" onclick="attemptLogin()">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════ APP SCREEN ════════════════════════════════════ -->
+<div id="app-screen">
+<div class="shell">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1>UNIMY Sports</h1>
+      <p>Club Management System</p>
+    </div>
+    <nav class="nav" id="nav-menu"></nav>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">⏻ Log out</button>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="topbar-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="avatar" id="user-avatar">AD</div>
+        <div class="user-info">
+          <span id="user-name">Admin User</span>
+          <small id="user-role-label">Club Administrator</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════ ADMIN: DASHBOARD ══════════ -->
+      <div class="page" id="page-dashboard">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Total Members</div>
+            <div class="value" id="stat-members">0</div>
+            <div class="sub">3 this month</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Active Clubs</div>
+            <div class="value">5</div>
+            <div class="sub">Across campus</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Upcoming Events</div>
+            <div class="value" id="stat-events">0</div>
+            <div class="sub">Next 30 days</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Avg Attendance</div>
+            <div class="value" id="stat-attend">0%</div>
+            <div class="sub">Past events</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><h3>Recent Members</h3></div>
+            <div class="card-body" style="padding:0">
+              <table>
+                <thead><tr><th>Name</th><th>Club</th><th>Status</th></tr></thead>
+                <tbody id="dash-members"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Upcoming Events</h3></div>
+            <div class="card-body" style="padding:0">
+              <table>
+                <thead><tr><th>Event</th><th>Date</th><th>Club</th></tr></thead>
+                <tbody id="dash-events"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><h3>Club Membership Distribution</h3></div>
+          <div class="card-body" id="club-dist"></div>
+        </div>
+      </div>
+
+      <!-- ══════════ ADMIN: MEMBERS (Approve memberships) ══════════ -->
+      <div class="page" id="page-members">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="text" placeholder="Search members..." id="member-search" style="width:220px" oninput="renderMembers()">
+            <select id="member-filter-club" onchange="renderMembers()" style="width:160px">
+              <option value="">All clubs</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="openMemberModal()">+ Add Member</button>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Student ID</th><th>Name</th><th>Email</th><th>Club</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="members-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ADMIN: CLUBS (Manage clubs) ══════════ -->
+      <div class="page" id="page-clubs">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="section-title" style="margin:0">All Clubs</div>
+          <button class="btn btn-primary" onclick="openClubModal()">+ Add Club</button>
+        </div>
+        <div class="three-col" id="clubs-grid"></div>
+      </div>
+
+      <!-- ══════════ ADMIN + STUDENT: EVENTS ══════════ -->
+      <div class="page" id="page-events">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <input type="text" placeholder="Search events..." id="event-search" style="width:220px" oninput="renderEvents()">
+          <button class="btn btn-primary" id="add-event-btn" onclick="openEventModal()">+ Create Event</button>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Event Name</th><th>Date</th><th>Venue</th><th>Club</th><th>Registered</th><th id="event-action-head">Actions</th></tr></thead>
+              <tbody id="events-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ADMIN + COACH: ATTENDANCE ══════════ -->
+      <div class="page" id="page-attendance">
+        <div style="display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;">
+          <select id="att-event-select" style="width:240px" onchange="renderAttendance()">
+            <option value="">Select an event...</option>
+          </select>
+          <span style="font-size:13px;color:#888;" id="att-summary"></span>
+          <button class="btn btn-success btn-sm" id="att-save-btn" onclick="saveAttendance()" style="display:none">Save Attendance</button>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Student ID</th><th>Name</th><th>Club</th><th>Status</th></tr></thead>
+              <tbody id="att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ ADMIN: ANNOUNCEMENTS ══════════ -->
+      <div class="page" id="page-announcements">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="section-title" style="margin:0">All Announcements</div>
+          <button class="btn btn-primary" id="add-ann-btn" onclick="openAnnModal()">+ Post Announcement</button>
+        </div>
+        <div id="ann-list"></div>
+      </div>
+
+      <!-- ══════════ ADMIN: REPORTS (Generate reports) ══════════ -->
+      <div class="page" id="page-reports">
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><h3>Membership Summary</h3></div>
+            <div class="card-body" id="report-membership"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Event Summary</h3></div>
+            <div class="card-body" id="report-events"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Attendance by Event</h3></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Event</th><th>Date</th><th>Club</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead>
+              <tbody id="report-att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="text-align:right;margin-top:8px;">
+          <button class="btn btn-outline" onclick="exportCSV()">⬇ Export CSV</button>
+        </div>
+      </div>
+
+      <!-- ══════════ COACH: VIEW MEMBERS ══════════ -->
+      <div class="page" id="page-coach-members">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;">
+          <input type="text" placeholder="Search members..." id="coach-member-search" style="width:240px" oninput="renderCoachMembers()">
+          <select id="coach-member-club" onchange="renderCoachMembers()" style="width:160px">
+            <option value="">All clubs</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Student ID</th><th>Name</th><th>Email</th><th>Club</th><th>Status</th></tr></thead>
+              <tbody id="coach-members-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ COACH + ADMIN: TRAINING SCHEDULE ══════════ -->
+      <div class="page" id="page-schedule">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <div class="section-title" style="margin:0">Training Schedule</div>
+          <button class="btn btn-primary" id="add-schedule-btn" onclick="openScheduleModal()">+ Add Session</button>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <div class="schedule-row" style="font-weight:600;color:#888;font-size:11px;text-transform:uppercase;border-bottom:2px solid #eef1f5;">
+              <span>Day</span><span>Time</span><span>Club</span><span></span>
+            </div>
+            <div id="schedule-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ MANAGEMENT: STATISTICS ══════════ -->
+      <div class="page" id="page-mgmt-stats">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Total Members</div>
+            <div class="value" id="mstat-members">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Active Clubs</div>
+            <div class="value">5</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Total Events</div>
+            <div class="value" id="mstat-events">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Avg Attendance Rate</div>
+            <div class="value" id="mstat-attend">0%</div>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><h3>Membership by Club</h3></div>
+            <div class="card-body" id="mgmt-membership-chart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><h3>Status Breakdown</h3></div>
+            <div class="card-body" id="mgmt-status-chart"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ MANAGEMENT: PERFORMANCE REPORTS ══════════ -->
+      <div class="page" id="page-mgmt-reports">
+        <div class="card">
+          <div class="card-header"><h3>Club Performance Overview</h3></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Club</th><th>Members</th><th>Events Held</th><th>Avg Attendance</th><th>Engagement</th></tr></thead>
+              <tbody id="mgmt-perf-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Attendance by Event</h3></div>
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Event</th><th>Date</th><th>Club</th><th>Present</th><th>Absent</th><th>Rate</th></tr></thead>
+              <tbody id="mgmt-att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div style="text-align:right;margin-top:8px;">
+          <button class="btn btn-outline" onclick="exportCSV()">Export CSV</button>
+        </div>
+      </div>
+
+      <!-- ══════════ STUDENT: PROFILE ══════════ -->
+      <div class="page" id="page-profile">
+        <div class="card">
+          <div class="card-body">
+            <div class="profile-card">
+              <div class="profile-avatar-lg" id="profile-avatar">ST</div>
+              <div style="flex:1">
+                <div class="form-grid">
+                  <div class="form-group"><label>Full Name</label><input id="p-name"></div>
+                  <div class="form-group"><label>Student ID</label><input id="p-sid" disabled></div>
+                  <div class="form-group"><label>Email</label><input id="p-email"></div>
+                  <div class="form-group"><label>Phone</label><input id="p-phone"></div>
+                  <div class="form-group"><label>Club</label><input id="p-club" disabled></div>
+                  <div class="form-group"><label>Status</label><input id="p-status" disabled></div>
+                </div>
+                <button class="btn btn-primary" style="margin-top:14px" onclick="saveProfile()">Save Changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ STUDENT: REGISTER MEMBERSHIP ══════════ -->
+      <div class="page" id="page-register">
+        <div class="card" style="max-width:520px">
+          <div class="card-header"><h3>Register for a Club</h3></div>
+          <div class="card-body">
+            <p style="font-size:13px;color:#666;margin-bottom:16px;">Submit a new club membership request. An administrator will review and approve it.</p>
+            <div class="form-group" style="margin-bottom:14px;">
+              <label>Select Club</label>
+              <select id="reg-club"></select>
+            </div>
+            <button class="btn btn-primary" onclick="registerMembership()">Submit Registration</button>
+            <div id="reg-status" style="margin-top:14px;font-size:13px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ STUDENT: CLUB INFORMATION ══════════ -->
+      <div class="page" id="page-club-info">
+        <div class="three-col" id="club-info-grid"></div>
+      </div>
+
+      <!-- ══════════ STUDENT: EVENT REGISTRATION ══════════ -->
+      <div class="page" id="page-student-events">
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Club</th><th>Slots</th><th>Action</th></tr></thead>
+              <tbody id="student-events-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ STUDENT: MY ATTENDANCE ══════════ -->
+      <div class="page" id="page-student-attendance">
+        <div class="card">
+          <div class="card-body" style="padding:0">
+            <table>
+              <thead><tr><th>Event</th><th>Date</th><th>Club</th><th>Status</th></tr></thead>
+              <tbody id="student-att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ SHARED: ANNOUNCEMENTS (read-only for student/coach/mgmt) ══════════ -->
+      <div class="page" id="page-announcements-view">
+        <div id="ann-list-view"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════ MODALS ═══════════════════════════ -->
+
+<div class="modal-overlay" id="member-modal">
+  <div class="modal">
+    <h3 id="member-modal-title">Add Member</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Student ID</label><input id="m-sid" placeholder="e.g. S12345"></div>
+      <div class="form-group"><label>Full Name</label><input id="m-name" placeholder="Full name"></div>
+      <div class="form-group"><label>Email</label><input id="m-email" type="email" placeholder="email@unimy.edu.my"></div>
+      <div class="form-group"><label>Phone</label><input id="m-phone" placeholder="+60-12-3456789"></div>
+      <div class="form-group"><label>Club</label><select id="m-club"></select></div>
+      <div class="form-group"><label>Status</label>
+        <select id="m-status">
+          <option value="Active">Active</option>
+          <option value="Pending">Pending</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <h3 id="event-modal-title">Create Event</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label>Event Name</label><input id="e-name" placeholder="e.g. Inter-Club Championship"></div>
+      <div class="form-group"><label>Date</label><input id="e-date" type="date"></div>
+      <div class="form-group"><label>Venue</label><input id="e-venue" placeholder="e.g. Sports Hall A"></div>
+      <div class="form-group"><label>Club</label><select id="e-club"></select></div>
+      <div class="form-group"><label>Max Slots</label><input id="e-slots" type="number" value="30" min="1"></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="closeModal('event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="ann-modal">
+  <div class="modal">
+    <h3>Post Announcement</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label>Title</label><input id="an-title" placeholder="Announcement title"></div>
+      <div class="form-group"><label>Club</label><select id="an-club"></select></div>
+      <div class="form-group"><label>Date</label><input id="an-date" type="date"></div>
+      <div class="form-group full"><label>Message</label><textarea id="an-body" placeholder="Write your announcement here..."></textarea></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="closeModal('ann-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAnnouncement()">Post</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="club-modal">
+  <div class="modal">
+    <h3 id="club-modal-title">Add Club</h3>
+    <div class="form-grid">
+      <div class="form-group full"><label>Club Name</label><input id="c-name" placeholder="e.g. Tennis Club"></div>
+      <div class="form-group full"><label>Description</label><textarea id="c-desc" placeholder="Brief description of the club"></textarea></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="closeModal('club-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveClub()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="schedule-modal">
+  <div class="modal">
+    <h3>Add Training Session</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>Day</label>
+        <select id="s-day">
+          <option>Monday</option>
+          <option>Tuesday</option>
+          <option>Wednesday</option>
+          <option>Thursday</option>
+          <option>Friday</option>
+          <option>Saturday</option>
+          <option>Sunday</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Time</label><input id="s-time" placeholder="e.g. 7:00 AM - 9:00 AM"></div>
+      <div class="form-group full"><label>Club</label><select id="s-club"></select></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-outline" onclick="closeModal('schedule-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSchedule()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">Saved</div>
+    <script src="script.js"></script>
+</body>
+</html>
